@@ -9,7 +9,7 @@ from fake_useragent import UserAgent
 from scrapy import signals
 import requests
 
-PROXY_POOL_URL = "http://jl-dior.top:5555/random"
+from scrapy.downloadermiddlewares.redirect import RedirectMiddleware
 
 
 class LagouSpiderMiddleware(object):
@@ -92,26 +92,45 @@ class RandomUserAgentMiddleware(object):
 
 
 class ProxyMiddleware(object):
-    def __init__(self, proxy_url):
-        self.logger = logging.getLogger(__name__)
-        self.proxy_url = proxy_url
-
-    def get_proxy(self):
-        try:
-            response = requests.get(self.proxy_url)
-            if response.status_code == 200:
-                return response.text
-        except ConnectionError:
-            return None
-
     def process_request(self, request, spider):
-        if request.meta.get('retry_times'):
-            proxy = self.get_proxy()
-            if proxy:
-                uri = 'https://{proxy}'.format(proxy=proxy)
-                self.logger.debug('使用代理', + proxy)
-                request.meta['proxy'] = uri
+        pro_addr = requests.get('http://jl-dior.top:5555/random').text
+        request.meta['proxy'] = 'http://' + pro_addr
 
-    @classmethod
-    def from_crawler(cls, crawler):
-        return cls(proxy_url=crawler.settings.get('PROXY_URL'))
+    # def __init__(self, proxy_url):
+    #     self.logger = logging.getLogger(__name__)
+    #     self.proxy_url = proxy_url
+
+    # def get_proxy(self):
+    #     try:
+    #         response = requests.get(self.proxy_url)
+    #         if response.status_code == 200:
+    #             return response.text
+    #     except ConnectionError:
+    #         return None
+
+    # def process_request(self, request, spider):
+    #     if request.meta.get('retry_times'):
+    #         proxy = self.get_proxy()
+    #         if proxy:
+    #             uri = 'http://{proxy}'.format(proxy=proxy)
+    #             self.logger.debug('使用代理', + proxy)
+    #             request.meta['proxy'] = uri
+
+    # @classmethod
+    # def from_crawler(cls, crawler):
+    #     return cls(proxy_url=crawler.settings.get('PROXY_URL'))
+
+# class ThreatDefenceRedirectMiddleware(RedirectMiddleware):
+#     def _redirect(self, redirected, request, spider, reason):
+#         # 如果没有特殊的防范性重定向那就正常工作
+#         if not self.is_threat_defense_url(redirected.url):
+#             return super()._redirect(redirected, request, spider, reason)
+
+#         logger.debug(f'Zipru threat defense triggered for {request.url}')
+#         request.cookies = self.bypass_threat_defense(redirected.url)
+#         request.dont_filter = True # 防止原始链接被标记为重复链接
+#         return request
+
+#     # def is_threat_defense_url(self, url):
+#     #     return '://zipru.to/threat_defense.php' in url
+

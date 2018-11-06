@@ -13,7 +13,7 @@ class LagouSpider(CrawlSpider):
 
     rules = (
         Rule(le(allow=r'www.lagou.com/zhaopin.*?')),
-        Rule(le(allow=r'www.lagou.com/jobs/\d+.html'), callback='parse_item')
+        Rule(le(allow=r'www.lagou.com/jobs/\d+.html'), callback='parse_item', follow=True)
     )
 
     def parse_item(self, response):
